@@ -1,0 +1,1 @@
+void addscore(std::string &);

@@ -1,0 +1,1 @@
+void load(const char []);
