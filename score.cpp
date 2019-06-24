@@ -51,6 +51,7 @@ public:
 	}
 	void point(), over(), add(int);
 	bool empty();
+	double getval(double);
 	operator double();
 	void setstandard(std::string);
 };
@@ -172,7 +173,7 @@ bool Num::empty(){
 	return type == Type::undetermined && frac[0].empty;
 }
 
-Num::operator double(){
+double Num::getval(double standard){
 	switch(type){
 		case Type::frac:
 			return standard * (frac[0].empty ? 1. : static_cast<double>(frac[0].val)) / (frac[1].empty ? 1. : static_cast<double>(frac[1].val));
@@ -182,6 +183,9 @@ Num::operator double(){
 		default:
 			return frac[0].empty ? static_cast<double>(standard) : frac[0].val;
 	}
+}
+Num::operator double(){
+	return getval(standard);
 }
 
 void Num::setstandard(std::string str){
