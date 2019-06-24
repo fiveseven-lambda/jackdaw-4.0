@@ -121,7 +121,6 @@ int Sentence::run(){
 		}
 	}else if(command == "set"){
 		if(args.size() == 2){
-
 		}else{
 			successful = false;
 		}

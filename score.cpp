@@ -41,7 +41,7 @@ class Num{
 	double dec;
 public:
 	Standard standard;
-	Num(double standard) : standard(standard) {}
+	Num(double standard) : standard(standard) { init(); }
 	void init(){
 		type = Type::undetermined;
 		frac[0].val = 0;
@@ -53,6 +53,7 @@ public:
 	bool empty();
 	double getval(double);
 	operator double();
+	void set(std::string);
 	void setstandard(std::string);
 };
 
@@ -61,8 +62,7 @@ void addscore(std::string &str){
 	str.push_back(':');
 	int index;
 	static std::array<Num, 3> num({440, 1, 1});
-	for(Num &i : num) i.init();
-	double attack, decay, sustain, release;
+	Num attack(0), decay(0), sustain(0), release(0);
 
 	double start = end, cursor = end;
 
@@ -92,17 +92,17 @@ void addscore(std::string &str){
 			case ',':
 			case ';':
 			case ':':
-				if(num[0].empty()) error_frequency_unspecified();
-				else{
+				{
+					double freq = num[0], length = num[1], vel = num[2];
 					score.push_back(Note({
-						num[0],
-						num[2],
-						attack,
-						decay,
-						sustain,
-						release,
+						freq,
+						vel,
+						attack.getval(length),
+						decay.getval(length),
+						sustain.getval(vel),
+						release.getval(length),
 						cursor,
-						cursor += num[1]
+						cursor += length
 					}));
 					if(end < cursor) end = cursor;
 					if(str[i] == ':') start = end;
@@ -116,7 +116,7 @@ void addscore(std::string &str){
 				break;
 			case '(':
 				for(int j = ++i;; ++i) if(str[i] == ')'){
-					[](std::string str){
+					[&attack, &decay, &sustain, &release](std::string str){
 						std::string command, arg;
 						for(int i = 0; i < str.size(); ++i){
 							if(isalpha(str[i])) command.push_back(str[i]);
@@ -128,6 +128,14 @@ void addscore(std::string &str){
 							num[1].setstandard(arg);
 						}else if(command == "dinamics"){
 							num[2].setstandard(arg);
+						}else if(command == "attack"){
+							attack.set(arg);
+						}else if(command == "decay"){
+							decay.set(arg);
+						}else if(command == "sustain"){
+							sustain.set(arg);
+						}else if(command == "release"){
+							release.set(arg);
 						}
 					}(str.substr(j, i - j));
 					break;
@@ -211,4 +219,21 @@ void Num::setstandard(std::string str){
 		}
 	}
 	standard = tmp;
+}
+
+void Num::set(std::string str){
+	init();
+	for(int i = 0; i < str.size(); ++i){
+		switch(str[i]){
+			case '.':
+				point();
+				break;
+			case '/':
+				over();
+				break;
+			case '0' ... '9':
+				add(str[i] - '0');
+				break;
+		}
+	}
 }

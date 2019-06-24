@@ -13,7 +13,24 @@ extern int samplerate;
 extern short bitdepth, channel;
 extern int ilength, filesize;
 
+extern int verbosity;
+
 void wav(void *dest){
+
+	if(verbosity){
+		for(const Note i : score){
+			std::cout
+				<< "(" << i.start << "-" << i.end << ")"
+				<< " f" << i.freq
+				<< " v" << i.vel
+				<< " a" << i.attack
+				<< " d" << i.decay
+				<< " s" << i.sustain
+				<< " r" << i.release
+			<< std::endl;
+		}
+	}
+
 	memcpy(dest, "RIFF", 4);
 	((unsigned int *)dest)[1] = filesize - 8;
 	memcpy((char *)dest + 8, "WAVEfmt ", 8);
@@ -30,17 +47,7 @@ void wav(void *dest){
 	double *data = new double[sizeof(double) * ilength];
 
 	for(auto i : score){
-		const double t = 2 * M_PI * i.freq / samplerate;
-		const std::complex<double> a(cos(t), sin(t));
-		std::complex<double> x[2]{{1, 0}, {0, 0}};
-
-		int start = i.start * samplerate;
-		int length = (int)(i.end * samplerate) - start;
-
-		for(int j = 0; j < length; ++j){
-			data[start + j] += x[j&1].imag() * i.vel;
-			x[~j&1] = x[j&1] * a;
-		}
+		i.wav(data, ilength);
 	}
 
 	for(int i = 0; i < ilength; ++i){
